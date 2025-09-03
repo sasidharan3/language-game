@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polska Quest — Road to B1 (Expanded, v4)</title>
+<style>
+:root{
+  --bg:#0b1220; --panel:#0f182a; --ink:#e6eefb; --muted:#a3b1c6; --border:#172338;
+  --accent:#22c55e; --accent2:#06b6d4; --warn:#eab308; --bad:#ef4444;
+  --btn:#132036; --btn2:#182a46; --glow:0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:
+ radial-gradient(1400px 800px at 10% -10%, #16263f 0%, #0b1220 60%), var(--bg); color:var(--ink); letter-spacing:.2px}
+a{color:#9ad1ff}
+.app{max-width:1120px; margin:18px auto 110px; padding:0 16px}
+header{display:flex; gap:16px; align-items:center; flex-wrap:wrap}
+.h1{font-weight:800; font-size: clamp(20px, 3.3vw, 34px)}
+.tag{padding:6px 10px; border:1px solid var(--border); border-radius:999px; background:linear-gradient(to bottom,#0f192b,#0c1627); color:#cbd5e1; font-weight:700}
+.controls{margin-left:auto; display:flex; gap:8px; align-items:center}
+.btn{background:var(--btn); color:var(--ink); border:1px solid var(--border); padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer}
+.btn:hover{background:var(--btn2)}
+.btn.small{padding:6px 10px; font-size:13px}
+.grid{display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(250px,1fr))}
+.card{background:linear-gradient(180deg,#0f182a,#0b1322); border:1px solid var(--border); border-radius:16px; padding:18px; box-shadow:var(--glow); position:relative; overflow:visible}
+.progress{height:10px; border-radius:999px; background:#0b1322; border:1px solid var(--border); overflow:hidden}
+.progress>div{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2))}
+.row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+.subtle{color:#a3b1c6; font-weight:700; font-size:12px; letter-spacing:.3px}
+.h2{font-weight:800; font-size: clamp(18px, 2.4vw, 24px); margin:4px 0 6px}
+.h3{font-weight:800; font-size: clamp(16px, 2.2vw, 20px); margin:0 0 6px}
+.kbd{background:#0d1423; padding:2px 6px; border-radius:6px; border:1px solid var(--border); font-weight:700}
+.pill{background:#0f1726; border:1px solid var(--border); padding:6px 10px; border-radius:999px; font-weight:700; color:#cbd5e1; display:inline-block; margin:2px; word-break:keep-all}
+.badge{border:1px solid var(--border); padding:2px 8px; border-radius:8px; font-weight:800}
+.primary{color:#12df8f}
+.warning{color:#ffdb70}
+.danger{color:#ff8b8b}
+input[type="text"], textarea{width:100%; background:#0f1726; color:var(--ink); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:16px}
+textarea{min-height:130px; resize:vertical}
+.choice{padding:12px; background:#0f1726; border:1px solid var(--border); border-radius:12px; font-weight:700; cursor:pointer; text-align:left; display:block; width:100%}
+.choice.correct{outline:2px solid var(--accent)}
+.choice.wrong{outline:2px solid var(--bad)}
+.list{display:grid; gap:10px}
+.center{text-align:center}
+footer.fixed{position:fixed; inset:auto 0 0 0; background:rgba(10,16,28,.85); backdrop-filter: blur(8px); border-top:1px solid var(--border)}
+footer .inner{max-width:1120px; margin:0 auto; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; color:#cbd5e1}
+hr{border:none; height:1px; background:linear-gradient(90deg,#0e1726,#253a63); margin:12px 0}
+.hidden{display:none}
+.lock{position:absolute; inset:0; background:rgba(7,10,18,.68); border-radius:16px; border:1px dashed #2b3b5d; display:flex; align-items:center; justify-content:center; text-align:center; padding:14px; z-index:2}
+.level-banner{margin:18px 0 8px; padding:8px 12px; border:1px solid var(--border); border-radius:12px; background:linear-gradient(180deg, #0f192c, #0c1526); font-weight:800}
+
+/* Ensure options never get cut off on mobile */
+.card .list{max-height:70vh; overflow:auto; padding-right:4px}
+.sticky-ops{position:sticky; top:0; display:flex; gap:8px; padding:8px 0; background:linear-gradient(180deg, rgba(11,18,32,.98), rgba(11,18,32,.75)); z-index:3; border-bottom:1px solid var(--border)}
+.topbar{display:flex; gap:8px; align-items:center; justify-content:space-between; margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <div class="h1">Polska Quest — <span class="subtle">Road to B1 (Expanded, v4)</span></div>
+    <span class="tag">A1 → A2 → B1 progression (locked until completed)</span>
+    <div class="controls">
+      <button class="btn small" id="muteBtn">🔊 Audio on</button>
+      <button class="btn small" id="resetBtn">🗑️ Reset</button>
+    </div>
+    <div style="width:100%">
+      <div class="progress"><div id="xpBar"></div></div>
+      <div class="row">
+        <div class="pill">XP: <b id="xp">0</b></div>
+        <div class="pill">Units done: <b id="done">0</b>/18</div>
+        <div class="pill">Streak: <b id="streak">0</b> days</div>
+        <div class="pill">Level: <b id="lvl">A1</b></div>
+      </div>
+    </div>
+  </header>
+
+  <div id="screen"></div>
+</div>
+
+<footer class="fixed">
+  <div class="inner tiny">
+    <div>Tip: Click 🔈 to hear Polish. Use <span class="kbd">Enter</span> to submit. You can always <b>Skip</b> a question.</div>
+    <div><button class="btn small" id="reviewBtn">📚 Spaced Review</button>
+    <button class="btn small" id="examBtn">📝 B1 Mock Exam</button></div>
+  </div>
+</footer>
+
+<script>
+// ===== Voice =====
+const voice = { muted:false, voice:null, ready:false };
+function loadVoices(){ const vs = speechSynthesis.getVoices(); voice.voice = vs.find(v=>/pl-PL/i.test(v.lang)) || vs.find(v=>v.lang.startsWith('pl')) || vs[0] || null; voice.ready=true; setMuteLabel(); }
+if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged = loadVoices; loadVoices(); }
+function speak(t){ if(voice.muted || !('speechSynthesis' in window)) return; const u=new SpeechSynthesisUtterance(t); if(voice.voice) u.voice=voice.voice; u.lang=(voice.voice && voice.voice.lang)||'pl-PL'; u.rate=.95; speechSynthesis.cancel(); speechSynthesis.speak(u); }
+function soundBtn(text){ const b=document.createElement('button'); b.className='btn small'; b.textContent='🔈'; b.onclick=e=>{e.stopPropagation(); speak(text);}; return b; }
+function setMuteLabel(){ document.getElementById('muteBtn').textContent = voice.muted ? '🔇 Audio off' : '🔊 Audio on'; }
+document.getElementById('muteBtn').onclick=()=>{ voice.muted=!voice.muted; setMuteLabel(); };
+
+// ===== Save =====
+const SAVE_KEY='PQ_B1_SAVE_V4';
+const Save = {
+  data: { xp:0, unitsDone:{}, review:[], streak:0, lastDay:null },
+  load(){ try{ const x=JSON.parse(localStorage.getItem(SAVE_KEY)||'null'); if(x) this.data=x; }catch(e){} updateHUD(); },
+  save(){ localStorage.setItem(SAVE_KEY, JSON.stringify(this.data)); updateHUD(); },
+  addXP(n){ this.data.xp += n; if(this.data.xp<0) this.data.xp=0; this.save(); },
+  markUnit(id){ this.data.unitsDone[id]=true; this.save(); },
+  pushReview(card){ this.data.review.push(card); if(this.data.review.length>300) this.data.review.shift(); this.save(); },
+  touchStreak(){ const today = new Date().toISOString().slice(0,10); if(this.data.lastDay!==today){ this.data.streak += 1; this.data.lastDay=today; } this.save(); }
+};
+function updateHUD(){
+  const doneCount = Object.keys(Save.data.unitsDone).length;
+  document.getElementById('xp').textContent = Save.data.xp;
+  document.getElementById('done').textContent = doneCount + '/18';
+  document.getElementById('streak').textContent = Save.data.streak;
+  const stage = doneCount>=12 ? 'B1' : doneCount>=6 ? 'A2' : 'A1';
+  document.getElementById('lvl').textContent = stage;
+  const pct = Math.min(100, Math.round((doneCount/18)*100));
+  document.getElementById('xpBar').style.width = pct+'%';
+}
+
+// ===== Course (18 units; level-gated) =====
+function u(id,level,title,topics,vocab,grammar,dialogues){ return {id,level,title,topics,vocab,grammar,dialogues}; }
+function d(npc,q,answers){ return {npc,q,answers}; }
+const COURSE = [
+  u(1,'A1','Greetings & Introductions',['politeness','names','formal/informal'],
+    [['cześć','hi'],['dzień dobry','good morning/day'],['dobry wieczór','good evening'],['do widzenia','goodbye'],['dziękuję','thank you'],['proszę','please/you’re welcome'],['tak','yes'],['nie','no'],['przepraszam','sorry'],['mam na imię…','my name is…']],
+    '<b>Register:</b> Use <i>pan/pani</i> for polite forms.',
+    [ d('Pani Ewa','Cześć! Jak masz na imię?',[['Cześć, jestem Adam.',1],['Mam dwa lata.',0],['Do widzenia!',0]]),
+      d('Pani Ewa','Dziękuję za pomoc!',[['Proszę bardzo!',1],['Przepraszam.',0],['Nie.',0]]) ]),
+  u(2,'A1','Numbers, Colors & Food Shopping',['numbers','colors','shop'],
+    [['jeden','one'],['dwa','two'],['trzy','three'],['cztery','four'],['pięć','five'],['czerwony','red'],['zielony','green'],['niebieski','blue'],['żółty','yellow'],['chleb','bread'],['woda','water'],['jabłko','apple']],
+    '<b>Ordering:</b> <i>Poproszę [biernik/accusative]</i> — Poproszę kawę.',
+    [ d('Sprzedawca','W czym mogę pomóc?',[['Poproszę chleb i wodę.',1],['Mam jabłko.',0],['Nie wiem.',0]]),
+      d('Sprzedawca','To kosztuje pięć złotych.',[['Dziękuję.',1],['Ile masz lat?',0],['Czerwony!',0]]) ]),
+  u(3,'A1','Family & Descriptions',['family','adjectives','gender'],
+    [['mama','mother'],['tata','father'],['siostra','sister'],['brat','brother'],['rodzina','family'],['wysoki','tall'],['miła','nice (f.)'],['przystojny','handsome'],['ładna','pretty']],
+    '<b>Gender:</b> Adjective agreement: <i>wysoki chłopak / ładna dziewczyna</i>.',
+    [ d('Znajomy','Opisz swoją rodzinę, proszę.',[['Mam brata i siostrę.',1],['Mam dworzec.',0],['Czerwony kot.',0]]) ]),
+  u(4,'A1','Daily Routines & Present Tense',['habits','time of day'],
+    [['wstaję','I get up'],['pracuję','I work'],['uczę się','I study'],['idę','I go'],['jem','I eat'],['wracam','I return'],['oglądam','I watch'],['czytam','I read']],
+    '<b>Present:</b> Endings e.g. <i>czytam, czytasz, czyta</i>.',
+    [ d('Kolega','O której wstajesz?',[['Wstaję o siódmej.',1],['Idę jutro.',0],['Czytam książkę.',0]]) ]),
+  u(5,'A1','Time, Dates & Appointments',['days','months','clock'],
+    [['poniedziałek','Monday'],['wtorek','Tuesday'],['środa','Wednesday'],['czwartek','Thursday'],['piątek','Friday'],['sobota','Saturday'],['niedziela','Sunday'],['godzina','hour'],['spotkanie','meeting'],['jutro','tomorrow']],
+    '<b>Questions:</b> <i>Która jest godzina?</i> / <i>Kiedy masz spotkanie?</i>',
+    [ d('Sekretariat','Kiedy pasuje spotkanie?',[['Jutro o dziesiątej.',1],['Wczoraj o dziesiątej.',0],['Na dworcu.',0]]) ]),
+  u(6,'A1','Travel Basics & Directions',['tickets','maps','places'],
+    [['lewo','left'],['prawo','right'],['prosto','straight'],['dworzec','station'],['ulica','street'],['bilet','ticket'],['blisko','near'],['daleko','far']],
+    '<b>Prepositions:</b> <i>na + locative</i> (na dworcu), <i>w + locative</i> (w mieście).',
+    [ d('Policjant','Gdzie jest dworzec?',[['Prosto i w prawo.',1],['Mam bilet.',0],['Niebieski dom.',0]]) ]),
+  u(7,'A2','Past Tense — Telling Stories',['yesterday','weekend'],
+    [['wczoraj','yesterday'],['tydzień temu','a week ago'],['poszedłem/poszłam','I went'],['kupiłem/kupiłam','I bought'],['byłem/byłam','I was']],
+    '<b>Past:</b> gender agreement: <i>kupiłem (m.), kupiłam (f.)</i>.',
+    [ d('Znajomy','Co robiłeś wczoraj?',[['Byłem w kinie i kupiłem popcorn.',1],['Będę w kinie.',0],['Idę do kina.',0]]) ]),
+  u(8,'A2','Accusative — Objects in Action',['objects','ordering'],
+    [['widzę psa','I see a dog'],['mam kota','I have a cat'],['piję wodę','I drink water'],['kocham muzykę','I love music']],
+    '<b>Accusative:</b> masculine animate → <i>-a</i> (pies→psa).',
+    [ d('Ktoś','Co pijesz?',[['Piję wodę.',1],['Piję woda.',0],['Mam woda.',0]]) ]),
+  u(9,'A2','Genitive — Negation & Quantities',['negation','amounts'],
+    [['nie mam czasu','I don’t have time'],['dużo pracy','a lot of work'],['szklanka wody','a glass of water']],
+    '<b>Genitive:</b> after negation and quantity words.',
+    [ d('Kolega','Masz czas?',[['Niestety nie mam czasu.',1],['Mam czasu.',0],['Mam czasem.',0]]) ]),
+  u(10,'A2','Dative — Giving & Telling',['recipient','benefit'],
+    [['daję mamie prezent','I give mom a gift'],['pomagam koledze','I help a friend'],['dziękuję panu','I thank you (sir)']],
+    '<b>Dative:</b> komu? czemu?',
+    [ d('Ty','Komu dziękujesz?',[['Dziękuję pani Kasi.',1],['Dziękuję Kasia.',0],['Dziękuję pan.',0]]) ]),
+  u(11,'A2','Instrumental — With/As & Professions',['with','profession','interests'],
+    [['z przyjacielem','with a friend'],['jestem nauczycielem','I am a teacher (m.)'],['interesuję się sportem','I’m interested in sports']],
+    '<b>Instrumental:</b> endings <i>-em/-ą</i>; after <i>z</i>, <i>jestem</i>.',
+    [ d('Nowy znajomy','Kim jesteś z zawodu?',[['Jestem inżynierem.',1],['Jestem inżynier.',0],['Byłem inżynierem jutro.',0]]) ]),
+  u(12,'A2','Locative — Places & Housing',['home','rooms','city'],
+    [['w domu','at home'],['w kuchni','in the kitchen'],['na uniwersytecie','at the university'],['w Warszawie','in Warsaw']],
+    '<b>Locative:</b> after <i>w/na/o/po</i>; adjectives agree: <i>w nowym domu</i>.',
+    [ d('Recepcja','Gdzie mieszkasz?',[['Mieszkam w Warszawie.',1],['Mieszkam Warszawa.',0],['Na Warszawie.',0]]) ]),
+  u(13,'B1','Health & Doctor Visit',['symptoms','advice','imperative'],
+    [['ból głowy','headache'],['gorączka','fever'],['recepta','prescription'],['tabletki','tablets'],['umówić wizytę','make an appointment']],
+    '<b>At the doctor:</b> Use past & present to describe symptoms; polite imperative: <i>Proszę głęboko oddychać.</i>',
+    [ d('Lekarz','Jakie ma pan/pani objawy?',[['Boli mnie gardło i mam gorączkę.',1],['Mam biblioteka.',0],['Czerwony autobus.',0]]) ]),
+  u(14,'B1','Work & Job Applications',['CV','interview','workplace'],
+    [['stanowisko','position'],['doświadczenie','experience'],['obowiązki','duties'],['umowa','contract'],['wynagrodzenie','salary']],
+    '<b>Formal language:</b> e-mail: <i>W załączeniu przesyłam CV. Czy możemy umówić się na rozmowę?</i>',
+    [ d('Rekruter','Dlaczego chce pan/pani u nas pracować?',[['Mam doświadczenie i lubię wyzwania.',1],['Lubię jabłka.',0],['Nie chcę pracy.',0]]) ]),
+  u(15,'B1','Housing & Real Estate',['renting','problems','complaints'],
+    [['wynajem','renting'],['kaucja','deposit'],['umowa najmu','rental agreement'],['usterka','fault'],['spółdzielnia','housing association']],
+    '<b>Complaint:</b> <i>Zgłaszam problem z ogrzewaniem. Proszę o naprawę do piątku.</i>',
+    [ d('Właściciel','Czy podpisujemy umowę?',[['Tak, ale proszę wyjaśnić wysokość kaucji.',1],['Nie mam czasu i kot.',0],['Chleb jest tani.',0]]) ]),
+  u(16,'B1','Banking & Public Services',['bank','post','utilities'],
+    [['konto','account'],['przelew','transfer'],['rachunek','bill/invoice'],['urząd','office'],['wniosek','application form']],
+    '<b>Formalities:</b> <i>Chciałbym otworzyć konto. Jakie dokumenty są potrzebne?</i>',
+    [ d('Bank','W czym mogę pomóc?',[['Chciałbym zrobić przelew zagraniczny.',1],['Poproszę kawę.',0],['Gdzie dworzec?',0]]) ]),
+  u(17,'B1','Travel & Accommodation (Advanced)',['hotel','complaints','reservations'],
+    [['rezerwacja','reservation'],['zameldowanie','check-in'],['wymeldowanie','check-out'],['klimatyzacja','air conditioning'],['usługa','service']],
+    '<b>At the hotel:</b> <i>Chciałbym zmienić pokój, ponieważ…</i>; soft complaints with <i>czy mogliby Państwo…</i>',
+    [ d('Recepcja','Czy wszystko w porządku?',[['Niestety, klimatyzacja nie działa.',1],['Jestem jabłkiem.',0],['Jutro wczoraj.',0]]) ]),
+  u(18,'B1','Emergencies, Society & Opinions',['112','documents','opinions'],
+    [['wypadek','accident'],['zgubić dokumenty','lose documents'],['świadek','witness'],['uważam, że','I think that'],['chociaż','although']],
+    '<b>Emergencies:</b> present facts clearly; Opinions: linkers <i>ponieważ, więc, dlatego, chociaż</i>.',
+    [ d('Policjant','Co się stało?',[['Zgubiłem dokumenty, potrzebuję pomocy.',1],['Lubię muzykę i...',0],['Chcę chleb.',0]]) ])
+];
+
+// ===== Utils =====
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls) e.className=cls; if(html!==undefined) e.innerHTML=html; return e;}
+function screen(node){ const s=document.getElementById('screen'); s.innerHTML=''; s.appendChild(node); window.scrollTo({top:0, behavior:'smooth'}); }
+function shuffle(a){ return a.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]); }
+function sample(a,n){ const c=[...a]; return shuffle(c).slice(0,n); }
+function chips(v){ return v.map(([pl,en])=>`<span class="pill" title="${en}">${pl}</span>`).join(' '); }
+
+// Example sentence generator (simple heuristics)
+function makeExample(pl, en){
+  // If phrase contains a space, just use as-is in a simple sentence
+  if(/\s/.test(pl)){
+    return {pl:`${pl}.`, en:`${en}.`};
+  }
+  // Basic patterns
+  const verbLike = /(ę|sz$|am$|asz$|isz$|uję$)/.test(pl);
+  if(verbLike){ return {pl:`Ja ${pl} codziennie.`, en:`I ${en} every day.`}; }
+  // Noun/adjective fallback
+  return {pl:`To jest ${pl}.`, en:`This is ${en}.`};
+}
+
+// ===== Home (with level gating) =====
+function home(){
+  Save.touchStreak();
+  const wrap = el('div','');
+  wrap.appendChild(el('div','card',`
+    <div class="h2">Your pathway</div>
+    <div class="subtle">Complete all A1 units to unlock A2. Complete all A2 to unlock B1. XP and review are saved locally.</div>
+  `));
+
+  const groups = ['A1','A2','B1'];
+  const a1Complete = COURSE.filter(x=>x.level==='A1').every(x=>Save.data.unitsDone[x.id]);
+  const a2Complete = COURSE.filter(x=>x.level==='A2').every(x=>Save.data.unitsDone[x.id]);
+  groups.forEach(L=>{
+    const grid = el('div','grid');
+    wrap.appendChild(el('div','level-banner',`Level ${L}`));
+    COURSE.filter(u=>u.level===L).forEach(u=>{
+      const done = !!Save.data.unitsDone[u.id];
+      const card = el('div','card');
+      card.innerHTML = `
+        <div class="subtle">Unit ${u.id}</div>
+        <div class="h3">${u.title}</div>
+        <div class="subtle">Topics: ${u.topics.join(', ')}</div>
+        <div style="margin:8px 0">${chips(u.vocab.slice(0,8))}</div>
+        <div class="row">
+          <button class="btn" data-id="${u.id}">${done?'✅ Review / Replay':'▶️ Start'}</button>
+          <span class="pill">${done?'Completed':'Not started'}</span>
+        </div>`;
+      let locked=false, reason='';
+      if(u.level==='A2' && !a1Complete){ locked=true; reason='Complete all A1 units to unlock A2.'; }
+      if(u.level==='B1' && !a2Complete){ locked=true; reason='Complete all A2 units to unlock B1.'; }
+      if(locked){
+        const overlay = el('div','lock',`🔒 ${reason}`);
+        card.appendChild(overlay);
+        card.querySelector('button').disabled = true;
+      }else{
+        card.querySelector('button').onclick=()=>unit(u.id);
+      }
+      grid.appendChild(card);
+    });
+    wrap.appendChild(grid);
+  });
+
+  const extras = el('div','grid');
+  const reviewCard = el('div','card',`<div class="h3">Spaced Review</div><p>Practice your recent mistakes.</p><button class="btn" id="goReview">📚 Review now</button>`);
+  reviewCard.querySelector('#goReview').onclick=()=>review();
+  const examCard = el('div','card',`<div class="h3">B1 Mock Exam</div><p>Full simulation with instant feedback.</p><button class="btn" id="goExam">📝 Start exam</button>`);
+  examCard.querySelector('#goExam').onclick=()=>mockExam();
+  extras.appendChild(reviewCard); extras.appendChild(examCard);
+  wrap.appendChild(extras);
+  screen(wrap);
+}
+document.getElementById('resetBtn').onclick=()=>{ if(confirm('Reset all progress?')){ localStorage.removeItem(SAVE_KEY); Save.load(); home(); } };
+document.getElementById('reviewBtn').onclick=()=>review();
+document.getElementById('examBtn').onclick=()=>mockExam();
+
+// ===== Study Materials (Extended) =====
+function studyMaterials(u, onStart){
+  const wrap = el('div','card');
+  const list = el('div','list');
+  const top = el('div','topbar');
+  const homeBtn = el('button','btn small','🏠 Home');
+  homeBtn.onclick=()=>home();
+  top.appendChild(el('div', null, `<div class="h2">Study Materials — Unit ${u.id}: ${u.title}</div><div class="subtle">Tap 🔈 to hear words and example sentences.</div>`));
+  top.appendChild(homeBtn);
+  wrap.appendChild(top);
+
+  // Full vocabulary with audio and example + English
+  u.vocab.forEach(([pl,en], idx)=>{
+    const ex = makeExample(pl,en);
+    const row = el('div','card',
+      `<div class="h3"><span class="pill">${pl}</span> <span class="subtle">— ${en}</span></div>
+       <div class="row">
+         <button class="btn small" id="say_word_${idx}">🔈 Word</button>
+         <button class="btn small" id="say_ex_${idx}">🔈 Example</button>
+       </div>
+       <div class="subtle">PL: ${ex.pl}</div>
+       <div class="subtle">EN: ${ex.en}</div>`
+    );
+    list.appendChild(row);
+    setTimeout(()=>{
+      row.querySelector(`#say_word_${idx}`).onclick=()=>speak(pl);
+      row.querySelector(`#say_ex_${idx}`).onclick=()=>speak(ex.pl);
+    });
+  });
+
+  const ops = el('div','row');
+  const startBtn = el('button','btn','Start unit');
+  const skipBtn  = el('button','btn small','Skip study');
+  startBtn.onclick=onStart; skipBtn.onclick=onStart;
+  ops.appendChild(startBtn); ops.appendChild(skipBtn);
+
+  wrap.appendChild(list);
+  wrap.appendChild(ops);
+  screen(wrap);
+}
+
+// ===== Unit engine =====
+function unit(id){
+  const u = COURSE.find(x=>x.id===id);
+  // First show study materials
+  studyMaterials(u, startActivities);
+  function startActivities(){
+    const wrap = el('div','');
+    const top = el('div','topbar');
+    const homeBtn = el('button','btn small','🏠 Home');
+    homeBtn.onclick=()=>home();
+    top.appendChild(el('div', null, `<div class="h2">Unit ${u.id} — ${u.title} <span class="pill">Level ${u.level}</span></div>
+       <div class="subtle">Activities: Flashcards → Multiple Choice → Cloze → Dialogue → Listening → Speaking → Writing</div>`));
+    top.appendChild(homeBtn);
+    wrap.appendChild(top);
+    wrap.appendChild(el('div','card',`<div class="progress" style="margin-top:6px"><div id="uBar"></div></div>`));
+
+    const stages = [
+      ()=>activityFlashcards(u,next),
+      ()=>activityMC(u,next),
+      ()=>activityCloze(u,next),
+      ()=>activityDialogue(u,next),
+      ()=>activityListening(u,next),
+      ()=>activitySpeaking(u,next),
+      ()=>activityWriting(u,finish)
+    ];
+    let step=0;
+    function next(){ step++; updateBar(); stages[step](); }
+    function finish(){ Save.markUnit(u.id); Save.addXP(120); endUnit(u); }
+    function updateBar(){ document.getElementById('uBar').style.width = Math.round(step/stages.length*100)+'%'; }
+    updateBar(); stages[0]();
+    screen(wrap);
+  }
+}
+function endUnit(u){
+  const wrap=el('div','card center');
+  wrap.innerHTML = `<div class="h2">Unit ${u.id} complete!</div><p>+120 XP</p>
+  <div class="row" style="justify-content:center">
+    <button class="btn" id="home">🏠 Home</button>
+    <button class="btn" id="review">Review mistakes</button>
+  </div>`;
+  wrap.querySelector('#home').onclick=()=>home();
+  wrap.querySelector('#review').onclick=()=>review();
+  screen(wrap);
+}
+
+// ===== Activities (with Skip buttons) =====
+function activityFlashcards(u,done){
+  const cont = el('div','card');
+  cont.innerHTML = `<div class="h3">Flashcards — Type the meaning</div>`;
+  const list = shuffle(u.vocab).slice(0,10);
+  let i=0, good=0;
+  const q = el('div','row'); cont.appendChild(q);
+  const input = el('input'); input.placeholder='Meaning in English…';
+  const btn = el('button','btn small','Check');
+  const skip = el('button','btn small','Skip');
+  const hint = el('div','subtle');
+  function render(){ const [pl,en]=list[i]; q.innerHTML=`<span class="pill">${pl}</span>`; q.appendChild(soundBtn(pl)); input.value=''; hint.textContent=''; }
+  function advance(skipped=false){ i++; if(i>=list.length){ cont.appendChild(el('hr')); cont.appendChild(el('div',null,`Score: ${good}/${list.length}`)); const k=el('button','btn','Continue'); k.onclick=done; cont.appendChild(k);} else render(); if(skipped){ Save.pushReview({type:'vocab',pl:list[i-1][0],en:list[i-1][1]}); } }
+  btn.onclick=()=>{ const [pl,en]=list[i]; if(input.value.trim().toLowerCase()===en.toLowerCase()){ good++; Save.addXP(5); hint.innerHTML='<span class="primary">✓</span>'; } else { hint.innerHTML=`<span class="danger">✗ ${en}</span>`; Save.pushReview({type:'vocab',pl,en}); } advance(false); };
+  skip.onclick=()=>advance(true);
+  input.addEventListener('keydown',e=>{ if(e.key==='Enter') btn.click(); });
+  cont.appendChild(input); cont.appendChild(btn); cont.appendChild(skip); cont.appendChild(hint);
+  cont.appendChild(el('hr')); cont.appendChild(el('div','subtle',u.grammar));
+  screen(cont);
+}
+
+function activityMC(u,done){
+  const cont = el('div','card'); cont.innerHTML='<div class="h3">Multiple choice — pick the meaning</div>';
+  const pool = shuffle(u.vocab); let i=0, score=0;
+  const list=el('div','list'); cont.appendChild(list);
+  const ops=el('div','sticky-ops'); const home=el('button','btn small','🏠 Home'); home.onclick=()=>home(); const skip=el('button','btn small','Skip'); cont.appendChild(ops); ops.appendChild(home); ops.appendChild(skip);
+  function render(){ const [pl,en]=pool[i]; cont.querySelector('.h3').textContent='Multiple choice — pick the meaning'; list.innerHTML=''; const q=el('div','row',`<span class="pill">${pl}</span>`); q.appendChild(soundBtn(pl)); list.appendChild(q);
+    const opts = shuffle([en, ...sample(pool.filter(p=>p[1]!==en).map(x=>x[1]),3)]);
+    opts.forEach(o=>{ const b=el('button','choice',o); b.onclick=()=>{ if(o===en){ b.classList.add('correct'); score++; Save.addXP(5);} else { b.classList.add('wrong'); Save.pushReview({type:'vocab',pl,en}); } [...list.querySelectorAll('.choice')].forEach(x=>x.disabled=true); setTimeout(()=>advance(false),360); }; list.appendChild(b); });
+  }
+  function advance(skipped){ i++; if(i>=Math.min(pool.length,8)){ cont.appendChild(el('hr')); cont.appendChild(el('div',null,`Score: ${score}/${Math.min(pool.length,8)}`)); const k=el('button','btn','Continue'); k.onclick=done; cont.appendChild(k);} else render(); if(skipped){ const [pl,en]=pool[i-1]; Save.pushReview({type:'vocab',pl,en}); } }
+  skip.onclick=()=>advance(true);
+  render(); screen(cont);
+}
+
+function activityCloze(u,done){
+  const templates = [
+    ['Poproszę __.', 'chleb', 'Poproszę chleb.'],
+    ['Mieszkam __ Warszawie.', 'w', 'Mieszkam w Warszawie.'],
+    ['Nie mam __.', 'czasu', 'Nie mam czasu.'],
+    ['Dziękuję __ pomoc.', 'za', 'Dziękuję za pomoc.'],
+    ['Idź __ prawo i potem prosto.', 'w', 'Idź w prawo i potem prosto.']
+  ];
+  const deck = shuffle(templates).slice(0,5); let i=0, good=0;
+  const cont=el('div','card'); const input=el('input'); input.placeholder='Missing word…'; const hint=el('div','subtle'); const btn=el('button','btn small','Check'); const skip=el('button','btn small','Skip');
+  const ops=el('div','row'); const home=el('button','btn small','🏠 Home'); home.onclick=()=>home(); ops.appendChild(home);
+  function render(){ const [q,a,full]=deck[i]; cont.innerHTML=`<div class="h3">Cloze — Fill the gap</div><div class="pill">${q}</div>`; cont.appendChild(ops); cont.appendChild(input); cont.appendChild(btn); cont.appendChild(skip); cont.appendChild(hint); input.value=''; hint.textContent=''; }
+  function advance(skipped){ i++; if(i>=deck.length){ cont.appendChild(el('hr')); cont.appendChild(el('div',null,`Score: ${good}/${deck.length}`)); const k=el('button','btn','Continue'); k.onclick=done; cont.appendChild(k);} else render(); if(skipped){ const [q,a]=deck[i-1]; Save.pushReview({type:'cloze',q:q,ans:a}); } }
+  btn.onclick=()=>{ const [q,a,full]=deck[i]; if(input.value.trim().toLowerCase()===a.toLowerCase()){ good++; Save.addXP(6); hint.innerHTML='<span class="primary">✓</span> '+full; } else { hint.innerHTML='<span class="danger">✗</span> '+full; Save.pushReview({type:'cloze',q,ans:a}); } setTimeout(()=>advance(false),360); };
+  skip.onclick=()=>advance(true);
+  render(); screen(cont);
+}
+
+function activityDialogue(u,done){
+  const cont=el('div','card'); cont.appendChild(el('div','h3','Dialogue — choose the reply'));
+  let i=0, sc=0; const ops=el('div','sticky-ops'); const home=el('button','btn small','🏠 Home'); home.onclick=()=>home(); const skip=el('button','btn small','Skip'); ops.appendChild(home); ops.appendChild(skip); cont.appendChild(ops);
+  function render(){ const turn=u.dialogues[i]; cont.querySelector('.h3').textContent='Dialogue — choose the reply'; const body=el('div','list'); cont.insertBefore(body, ops); body.innerHTML=''; const prompt=el('div','row',`<div class="pill"><b>${turn.npc}:</b> ${turn.q}</div>`); body.appendChild(prompt); const choices=el('div','list'); body.appendChild(choices); shuffle(turn.answers).forEach(([txt,ok])=>{ const b=el('button','choice',txt); b.appendChild(soundBtn(txt)); b.onclick=()=>{ if(ok){ b.classList.add('correct'); sc++; Save.addXP(8); speak(txt);} else { b.classList.add('wrong'); Save.pushReview({type:'dialogue',q:turn.q,txt}); } [...choices.children].forEach(x=>x.disabled=true); setTimeout(()=>advance(false),460); }; choices.appendChild(b); }); }
+  function advance(skipped){ i++; if(i>=u.dialogues.length){ cont.appendChild(el('hr')); const k=el('button','btn','Continue'); k.onclick=done; cont.appendChild(k);} else render(); if(skipped){ Save.pushReview({type:'dialogue-skip',q:u.dialogues[i-1].q}); } }
+  skip.onclick=()=>advance(true);
+  render(); screen(cont);
+}
+
+function activityListening(u,done){
+  const cont=el('div','card'); cont.innerHTML='<div class="h3">Listening — play, then answer</div>'; const passage = buildListening(u); const play=el('button','btn small','▶️ Play'); play.onclick=()=>speak(passage.text); cont.appendChild(play); cont.appendChild(el('div','subtle',passage.text));
+  passage.qs.forEach(q=>{ cont.appendChild(el('div','pill',q.q)); const options=el('div','list'); shuffle(q.options).forEach(o=>{ const b=el('button','choice',o); b.onclick=()=>{ if(o===q.answer){ b.classList.add('correct'); Save.addXP(7);} else { b.classList.add('wrong'); Save.pushReview({type:'listening',q:q.q,ans:q.answer}); } [...options.children].forEach(x=>x.disabled=true); }; options.appendChild(b); }); cont.appendChild(options); cont.appendChild(el('hr')); });
+  const ops=el('div','row'); const home=el('button','btn small','🏠 Home'); home.onclick=()=>home(); const skip=el('button','btn small','Skip section'); const next=el('button','btn','Continue'); skip.onclick=()=>done(); next.onclick=()=>done(); ops.appendChild(home); ops.appendChild(skip); ops.appendChild(next); cont.appendChild(ops);
+  screen(cont);
+}
+function buildListening(u){ const who=['Kasia','Adam','Ewa','Piotr'][Math.floor(Math.random()*4)]; const city=['Warszawie','Krakowie','Gdańsku'][Math.floor(Math.random()*3)]; const topic = u.level==='B1' ? 'spotkanie w urzędzie' : 'zakupy w sklepie'; const text = `${who} ma ${topic} w ${city}. Prosi o pomoc i dziękuje. Potem wraca do domu.`; return { text, qs:[ {q:'W jakim mieście jest wydarzenie?', options:['w Warszawie','w Krakowie','w Gdańsku'], answer:'w '+city}, {q:'Co robi bohater/bohaterka?', options:['ma spotkanie','idzie spać','biega maraton'], answer:'ma spotkanie'} ] }; }
+
+function activitySpeaking(u,done){
+  const cont=el('div','card'); cont.innerHTML=`<div class="h3">Speaking — say the line</div><p class="subtle">Click “🎙️ Start” and say the sentence. We’ll detect key words (browser support varies).</p>`; const target = u.dialogues[0]?.answers.find(x=>x[1])[0] || (u.vocab[0]?u.vocab[0][0]:'Dzień dobry.'); const show=el('div','row',`<div class="pill">${target}</div>`); show.appendChild(soundBtn(target)); cont.appendChild(show); const out=el('div','subtle','—'); const start=el('button','btn small','🎙️ Start'); const home=el('button','btn small','🏠 Home'); home.onclick=()=>home(); const skip=el('button','btn small','Skip');
+  let recog, ok=false; start.onclick=()=>{ const R=window.SpeechRecognition||window.webkitSpeechRecognition; if(!R){ alert('Speech recognition not supported on this browser.'); return; } recog=new R(); recog.lang='pl-PL'; recog.interimResults=true; recog.onresult=e=>{ const txt=Array.from(e.results).map(r=>r[0].transcript).join(' '); out.textContent=txt; if(!ok && txt.toLowerCase().includes(target.split(' ')[0].toLowerCase())){ ok=true; Save.addXP(10); out.innerHTML+=' <span class="primary">✓</span>'; } }; recog.start(); };
+  skip.onclick=()=>done();
+  cont.appendChild(newRow(start, skip, home)); cont.appendChild(out);
+  cont.appendChild(el('hr')); const next=el('button','btn','Continue'); next.onclick=done; cont.appendChild(next); screen(cont);
+}
+
+function activityWriting(u,done){
+  const cont=el('div','card'); const prompt = pickPrompt(u); cont.innerHTML = `<div class="h3">Writing — short text</div><p class="subtle">Write ${prompt.min}-${prompt.max} words. Include: <b>${prompt.must.join(', ')}</b>.</p>`; const ta=el('textarea'); const info=el('div','subtle'); const btn=el('button','btn small','Check & finish'); const skip=el('button','btn small','Skip'); const home=el('button','btn small','🏠 Home'); home.onclick=()=>home();
+  btn.onclick=()=>{ const text=ta.value.trim(); const words=text.split(/\\s+/).filter(Boolean); const missing=prompt.must.filter(k=>!text.toLowerCase().includes(k.toLowerCase())); let msg='Words: '+words.length+'. '; if(words.length<prompt.min || words.length>prompt.max){ msg+=`<span class="warning">Aim ${prompt.min}-${prompt.max}.</span> `; } else msg+='<span class="primary">Good length.</span> '; if(missing.length){ msg+= 'Missing: <b>'+missing.join(', ')+'</b>'; Save.pushReview({type:'writing',missing,topic:prompt.title}); } else { msg+='<span class="primary">All included.</span>'; Save.addXP(15); done(); } info.innerHTML=msg; };
+  skip.onclick=()=>done();
+  cont.appendChild(ta); cont.appendChild(newRow(btn, skip, home)); cont.appendChild(info); screen(cont);
+}
+function pickPrompt(u){ const base=[ {title:'E-mail do znajomego o weekendzie (miejsce, osoby, opinia).', must:['w weekend','byłem','byłam','uważam'], min:60, max:120}, {title:'Skarga do hotelu: problem i propozycja rozwiązania.', must:['problem','proszę','naprawić'], min:80, max:140}, {title:'CV — krótki opis doświadczenia i umiejętności.', must:['doświadczenie','umiejętności','pracowałem','pracowałam'], min:80, max:140}, {title:'Wizyta u lekarza — opisz objawy i zalecenia.', must:['boli','gorączka','proszę'], min:70, max:130} ]; return base[Math.floor(Math.random()*base.length)]; }
+function newRow(){ const d=el('div','row'); [...arguments].forEach(a=>d.appendChild(a)); return d; }
+
+// ===== Review =====
+function review(){ const items=Save.data.review.slice(-20); const wrap=el('div','card'); wrap.innerHTML='<div class="h3">Spaced Review</div>'; if(!items.length){ wrap.appendChild(el('div',null,'No items yet. Complete units first.')); screen(wrap); return; } let i=0,sc=0; function render(){ const it=items[i]; wrap.innerHTML='<div class="h3">Spaced Review</div>'; if(it.type==='vocab'){ const q=el('div','row',`<div class="pill">${it.pl}</div>`); q.appendChild(soundBtn(it.pl)); wrap.appendChild(q); const input=el('input'); input.placeholder='Meaning in English…'; const b=el('button','btn small','Check'); b.onclick=()=>{ if(input.value.trim().toLowerCase()===it.en.toLowerCase()){ sc++; Save.addXP(4);} next(); }; wrap.appendChild(input); wrap.appendChild(b); } else if(it.type==='cloze'){ wrap.appendChild(el('div','pill',it.q)); const input=el('input'); const b=el('button','btn small','Check'); b.onclick=()=>{ if(input.value.trim().toLowerCase()===it.ans.toLowerCase()){ sc++; Save.addXP(4);} next(); }; wrap.appendChild(input); wrap.appendChild(b); } else { const t=it.txt||it.ans||it.en||''; const row=el('div','row',`<div class="pill">${t}</div>`); row.appendChild(soundBtn(t)); wrap.appendChild(row); const k=el('button','btn small','I said it'); k.onclick=()=>{ sc++; Save.addXP(4); next(); }; wrap.appendChild(k);} } function next(){ i++; if(i>=items.length){ wrap.appendChild(el('hr')); wrap.appendChild(el('div',null,`Done: ${sc}/${items.length}`)); const h=el('button','btn','Home'); h.onclick=()=>home(); wrap.appendChild(h);} else render(); } render(); screen(wrap); }
+
+// ===== Mock Exam =====
+function mockExam(){ const wrap=el('div',''); const top = el('div','topbar'); const homeBtn=el('button','btn small','🏠 Home'); homeBtn.onclick=()=>home(); top.appendChild(el('div', null, `<div class="h2">Mock Exam</div>`)); top.appendChild(homeBtn); wrap.appendChild(top);
+  const parts=['Reading','Listening','Writing','Speaking']; let step=0,score=0; function next(){ step++; if(step>=parts.length){ finish(); } else render(); } function render(){ if(step===0) examReading(()=>{score+=20; next();}, next, wrap); else if(step===1) examListening(()=>{score+=20; next();}, next, wrap); else if(step===2) examWriting(()=>{score+=20; next();}, next, wrap); else if(step===3) examSpeaking(()=>{score+=20; next();}, next, wrap); } function finish(){ const card=el('div','card center'); card.innerHTML=`<div class="h2">Mock Exam Completed</div><p>Sections cleared: <b>${score/20}/4</b>. This is an educational simulation.</p><div class="row center" style="justify-content:center"><button class="btn" id="goHome">🏠 Home</button></div>`; card.querySelector('#goHome').onclick=()=>home(); screen(card);} render(); }
+function examReading(pass,fail,wrap){ const card=el('div','card'); const text='Ogłoszenie: W sobotę odbędzie się piknik rodzinny w parku miejskim. Będzie muzyka, gry dla dzieci i stoiska z jedzeniem. Wstęp wolny.'; card.innerHTML=`<div class="h3">Reading</div><p class="subtle">${text}</p>`; const qs=[{q:'Kiedy będzie wydarzenie?',a:'sobotę'},{q:'Gdzie odbędzie się piknik?',a:'w parku'},{q:'Czy wstęp jest płatny?',a:'nie'}]; let correct=0; qs.forEach(o=>{ const inp=el('input'); inp.placeholder=o.q; inp.onchange=()=>{ if(inp.value.toLowerCase().includes(o.a)){ inp.style.outline='2px solid #22c55e'; correct++; } else { inp.style.outline='2px solid #ef4444'; } }; card.appendChild(inp); }); const btn=el('button','btn small','Submit'); const skip=el('button','btn small','Skip section'); btn.onclick=()=>{ if(correct>=2){ Save.addXP(25); pass(); } else fail(); }; skip.onclick=()=>pass(); card.appendChild(btn); card.appendChild(skip); wrap.appendChild(card); }
+function examListening(pass,fail,wrap){ const card=el('div','card'); const text='Dzień dobry, pociąg do Poznania odjedzie z peronu trzeciego o godzinie trzynastej trzydzieści.'; card.innerHTML=`<div class="h3">Listening</div><button class="btn small" id="play">▶️ Play</button>`; card.querySelector('#play').onclick=()=>speak(text); const q1=el('input'); q1.placeholder='Z którego peronu odjeżdża pociąg?'; const q2=el('input'); q2.placeholder='O której godzinie?'; card.appendChild(q1); card.appendChild(q2); const btn=el('button','btn small','Submit'); const skip=el('button','btn small','Skip section'); btn.onclick=()=>{ const ok=q1.value.includes('trzec') && (q2.value.includes('13:30')||q2.value.includes('trzynastej')); if(ok){ Save.addXP(25); pass(); } else fail(); }; skip.onclick=()=>pass(); card.appendChild(btn); card.appendChild(skip); wrap.appendChild(card); }
+function examWriting(pass,fail,wrap){ const card=el('div','card'); card.innerHTML='<div class="h3">Writing</div><p class="subtle">Napisz 100–140 słów: e-mail do biura podróży z prośbą o informacje o wycieczce. Zadaj 3 pytania i przedstaw siebie.</p>'; const ta=el('textarea'); const ops=el('div','row'); const skip=el('button','btn small','Skip section'); const btn=el('button','btn small','Submit'); btn.onclick=()=>{ const wc=ta.value.trim().split(/\\s+/).filter(Boolean).length; if(wc>=100 && /\\?/.test(ta.value) && /nazywam|mam na imię|jestem/i.test(ta.value)){ Save.addXP(25); pass(); } else fail(); }; skip.onclick=()=>pass(); card.appendChild(ta); ops.appendChild(btn); ops.appendChild(skip); card.appendChild(ops); wrap.appendChild(card); }
+function examSpeaking(pass,fail,wrap){ const card=el('div','card'); card.innerHTML='<div class="h3">Speaking</div><p class="subtle">Opowiedz o swoich planach na weekend (użyj przyszłości).</p>'; const start=el('button','btn small','🎙️ Start'); const skip=el('button','btn small','Skip section'); const out=el('div','subtle','—'); let recog, hit=false; start.onclick=()=>{ const R=window.SpeechRecognition||window.webkitSpeechRecognition; if(!R){ alert('Speech recognition unsupported.'); return; } recog=new R(); recog.lang='pl-PL'; recog.interimResults=true; recog.onresult=e=>{ const txt=Array.from(e.results).map(r=>r[0].transcript).join(' '); out.textContent=txt; if(/będę|pójdę|zrobię|przeczytam|obejrzę/i.test(txt)) hit=true; }; recog.onend=()=>{ if(hit){ Save.addXP(25); pass(); } else fail(); }; recog.start(); }; skip.onclick=()=>pass(); card.appendChild(newRow(start, skip)); card.appendChild(out); wrap.appendChild(card); }
+
+// ===== Init =====
+Save.load(); home();
+</script>
+</body>
+</html>
